@@ -1,5 +1,12 @@
 module Spree
   class PaySimpleCheckout < ActiveRecord::Base
+
+
+    def self.create_from_token(token)
+      create!(payment_token: token)
+    end
+
+
     def actions
       %w(void settle credit)
     end

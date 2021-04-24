@@ -6,7 +6,6 @@ var paysimplejs = null;
 SpreePaySimple = {
     loadPaysimpleJs: function (auth) {
         paysimplejs = window.paysimpleJs({
-            // Element that will contain the iframe
             container: document.querySelector('#psjs'),
             auth: auth,
             bypassPostalCodeValidation: false,
@@ -18,25 +17,9 @@ SpreePaySimple = {
             }
         });
 
-        // Configure a callback to complete the checkout after the
-        // PaySimpleJS SDK retrieves the account
         paysimplejs.on('accountRetrieved', this.onAccountRetrieved);
-        // Listen to the 'formValidityChanged' event to enable your submit button
-        // where body = { validity: <'true' | 'false'> }
         paysimplejs.on('formValidityChanged', function (body) {
-            // if (body === 'true') {
-            //     CHECKOUT_BTN.attr('disabled', true)
-            // } else {
-            //     CHECKOUT_BTN.attr('disabled', false)
-            // }
         });
-        // Listen to the 'httpError' event
-        // where error = {
-        // errorKey: <'timeout' | 'bad_request' | 'server_error'
-        // | 'unauthorized' | 'unknown'>,
-        // errors: <array of { field: <string>, message: <string> }>,
-        // status: <number - http status code returned>
-        // }
 
         paysimplejs.on('httpError', function (error) {
             alert('Error, please try again later.')
@@ -44,34 +27,40 @@ SpreePaySimple = {
         // Load the credit card key enter form
         paysimplejs.send.setMode('cc-key-enter');
         // Add an event listener to your submit button
-        $('#checkout_form_payment').on('submit', this.onSubmit);
+        var $this = this
+        CHECKOUT_BTN.on('click', function (event) {
+            event.preventDefault();
+            $this.onSubmit(event)
+
+            return false
+        });
     },
 
     // Called when the PaySimpleJS SDK retrieves the account info
     onAccountRetrieved: function (accountInfo) {
         console.log(accountInfo)
-        // Send the accountInfo to your server to collect a payment
-        // for an existing customer
 
+        $('<input>').attr({
+            type: 'hidden',
+            value: accountInfo['paymentToken'],
+            name: 'payment_source[' + SpreePaySimple.paymentMethodID + '][payment_token]'
+        }).appendTo('#checkout_form_payment');
+        $('<input>').attr({
+            type: 'hidden',
+            value: accountInfo['account']['id'],
+            name: 'payment_source[' + SpreePaySimple.paymentMethodID + '][account_id]'
+        }).appendTo('#checkout_form_payment');
+        $('<input>').attr({
+            type: 'hidden',
+            value: SpreePaySimple.customer.firstName + ' ' + SpreePaySimple.customer.firstName,
+            name: 'payment_source[' + SpreePaySimple.paymentMethodID + '][name]'
+        }).appendTo('#checkout_form_payment');
         $('#checkout_form_payment').submit()
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/payment');
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onload = function (e) {
-            if (xhr.status < 300) {
-                var data = JSON.parse(this.response);
-                console.log('Successfully created Payment:\nTrace #: ' + data.TraceNumber);
-            } else {
-                console.log('Failed to create Payment: (' + xhr.status + ') ' + xhr.responseText);
-            }
-        }
-        xhr.send(JSON.stringify(accountInfo));
     },
 
     // Submit button event listener -- triggered when the user clicks the submit button.
-    // Sumbits the merchant form data to the PaySimpleJS SDK
-    onSubmit: function (event) {
-        event.preventDefault();
+    // Sumbit the merchant form data to the PaySimpleJS SDK
+    onSubmit: function () {
         var customer = {
             firstName: SpreePaySimple.customer.firstName,
             lastName: SpreePaySimple.customer.lastName,
@@ -83,6 +72,7 @@ SpreePaySimple = {
 
     // Obtain a Checkout Token from your server
     getAuth: function () {
+        CHECKOUT_BTN.attr('disabled', true)
         var $this = this
         return $.ajax({
             url: Spree.routes.paysimple_auth + '?payment_method_id=' + SpreePaySimple.paymentMethodID
@@ -92,6 +82,7 @@ SpreePaySimple = {
                 $this.loadPaysimpleJs({
                     token: data.jwt_token
                 });
+                CHECKOUT_BTN.attr('disabled', false)
                 return;
             }
 
@@ -100,6 +91,3 @@ SpreePaySimple = {
     },
 }
 
-document.addEventListener('turbolinks:load', function () {
-    SpreePaySimple.getAuth();
-})

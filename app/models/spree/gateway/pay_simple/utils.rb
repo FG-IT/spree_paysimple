@@ -1,4 +1,3 @@
-
 module Spree
   class Gateway
     class PaySimple
