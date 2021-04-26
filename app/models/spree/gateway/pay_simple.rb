@@ -119,10 +119,10 @@ module Spree
       customer_data = @utils.get_customer
       customer_id = @utils.fetch_customer_id(customer_data)
       billing_address = @utils.get_address('billing')
-      
+
       year4 = source.year > 1000 ? source.year : "20#{source.year}"
       month = "%02d" % source.month
-      expiration_date =  "#{month}/#{year4}"
+      expiration_date = "#{month}/#{year4}"
       # logger.info billing_address[:postal_code]
       begin
         credit_card = provider::CreditCard.create({
