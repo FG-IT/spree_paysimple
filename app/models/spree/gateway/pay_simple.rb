@@ -44,7 +44,7 @@ module Spree
       logger.info source
       logger.info gateway_options
 
-      if source.payment_token.present?
+      if source.has_attribute? 'payment_token'
         process_token(money_in_cents, source, gateway_options)
       else
         process_card(money_in_cents, source, gateway_options)
@@ -119,13 +119,16 @@ module Spree
       customer_data = @utils.get_customer
       customer_id = @utils.fetch_customer_id(customer_data)
       billing_address = @utils.get_address('billing')
-      year4 = source.year > 1000 ? source.year : "20" + source.year
-
+      
+      year4 = source.year > 1000 ? source.year : "20#{source.year}"
+      month = "%02d" % source.month
+      expiration_date =  "#{month}/#{year4}"
+      # logger.info billing_address[:postal_code]
       begin
         credit_card = provider::CreditCard.create({
                                                       customer_id: customer_id,
                                                       credit_card_number: source.number,
-                                                      expiration_date: "#{source.month}/#{year4}",
+                                                      expiration_date: expiration_date,
                                                       billing_zip_code: billing_address[:postal_code],
                                                       issuer: @utils.detect_issuer(source.number)
                                                   })
