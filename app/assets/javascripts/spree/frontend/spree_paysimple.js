@@ -29,17 +29,17 @@ SpreePaySimple = {
         // Add an event listener to your submit button
         var $this = this
         CHECKOUT_BTN.on('click', function (event) {
-            event.preventDefault();
-            $this.onSubmit(event)
-
-            return false
+            if ($('#psjs').is(":visible")) {
+                event.preventDefault();
+                $this.onSubmit(event)
+                return false
+            }
         });
     },
 
     // Called when the PaySimpleJS SDK retrieves the account info
     onAccountRetrieved: function (accountInfo) {
         console.log(accountInfo)
-
         $('<input>').attr({
             type: 'hidden',
             value: accountInfo['paymentToken'],

@@ -30,6 +30,9 @@ module Spree
       Paysimple
     end
 
+    def payment_profiles_supported
+      false
+    end
 
     def provider
       Paysimple.api_user = preferred_login
