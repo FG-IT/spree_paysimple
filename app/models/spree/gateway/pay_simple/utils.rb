@@ -29,7 +29,9 @@ module Spree
             customer = @gateway.provider::Customer.create({
                                                               first_name: customer_data['first_name'],
                                                               last_name: customer_data['last_name'],
-                                                              email: customer_data['email']
+                                                              email: customer_data['email'],
+                                                              billing_address: paysimple_address_data('billing', order),
+                                                              shipping_address: paysimple_address_data('shipping', order)
                                                           })
             customer_id = customer[:id]
           end
@@ -42,6 +44,17 @@ module Spree
               amount: amount,
               order_id: order.number
           )
+        end
+
+        def paysimple_address_data(address_type, target)
+          address = target.send("#{address_type}_address")
+          {
+              city: address.city,
+              zip_code: address.zipcode,
+              state_code: address.state.try(:abbr),
+              street_address1: address.address1,
+              street_address2: address.address2
+          }
         end
 
         def address_data(address_type, target)

@@ -62,10 +62,11 @@ module Spree
     def credit(credit_cents, transaction_id, _options)
       begin
         payment = provider::Payment.get(transaction_id)
+        logger.info payment[:status]
 
         if payment[:status] == 'Voided'
           Response.new(true, "Payment already voided")
-        elsif payment[:status] == 'Authorized'
+        elsif voidable(payment[:status])
           void(transaction_id, nil)
         else
           response = provider::Payment.refund(transaction_id)
@@ -93,10 +94,14 @@ module Spree
     end
 
     def cancel(response_code)
-      void(response_code, nil)
+      credit(nil, response_code, nil)
     end
 
     private
+
+    def voidable(payment_status)
+      %w(Authorized ReversePosted).include? payment_status
+    end
 
     def process_token(money_in_cents, source, gateway_options)
       order, payment = order_data_from_options(gateway_options)
@@ -140,6 +145,7 @@ module Spree
                                                amount: money_in_cents.to_f / 100,
                                                account_id: credit_card[:id],
                                                order_id: order.number,
+                                               cvv: source.verification_value,
                                                invoice_number: order.number
                                            })
         Response.new(true, nil, payment)

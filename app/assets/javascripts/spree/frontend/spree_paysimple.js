@@ -39,7 +39,6 @@ SpreePaySimple = {
 
     // Called when the PaySimpleJS SDK retrieves the account info
     onAccountRetrieved: function (accountInfo) {
-        console.log(accountInfo)
         $('<input>').attr({
             type: 'hidden',
             value: accountInfo['paymentToken'],
@@ -64,11 +63,12 @@ SpreePaySimple = {
         var customer = {
             firstName: SpreePaySimple.customer.firstName,
             lastName: SpreePaySimple.customer.lastName,
-            email: SpreePaySimple.customer.email
+            email: SpreePaySimple.customer.email,
+            billingAddress: SpreePaySimple.billingAddress,
+            shippingAddress: SpreePaySimple.shippingAddress
         };
         paysimplejs.send.retrieveAccount(customer);
     },
-
 
     // Obtain a Checkout Token from your server
     getAuth: function () {
