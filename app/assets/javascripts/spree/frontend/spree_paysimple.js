@@ -51,7 +51,7 @@ SpreePaySimple = {
         }).appendTo('#checkout_form_payment');
         $('<input>').attr({
             type: 'hidden',
-            value: SpreePaySimple.customer.firstName + ' ' + SpreePaySimple.customer.firstName,
+            value: SpreePaySimple.customer.firstName + ' ' + SpreePaySimple.customer.lastName,
             name: 'payment_source[' + SpreePaySimple.paymentMethodID + '][name]'
         }).appendTo('#checkout_form_payment');
         $('#checkout_form_payment').submit()

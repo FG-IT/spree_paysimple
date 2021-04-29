@@ -66,6 +66,8 @@ module Spree
 
         if payment[:status] == 'Voided'
           Response.new(true, "Payment already voided")
+        elsif payment[:status] == 'Reversed'
+          Response.new(true, "Payment already refunded")
         elsif voidable(payment[:status])
           void(transaction_id, nil)
         else
